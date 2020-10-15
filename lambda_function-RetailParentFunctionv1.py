@@ -45,6 +45,7 @@ def lambda_handler(event,context):
 
     # Invoking Lambda directly
     response = client.invoke(
+        #FunctionName = 'arn:aws:lambda:eu-west-1:527477237977:function:RetailChildFunction', # This could be set as a Lambda Environment Variable
         FunctionName = CHILD_FUNCTION_ARN,
         InvocationType = 'RequestResponse',
         Payload = json.dumps(inputParams)
