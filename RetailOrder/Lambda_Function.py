@@ -38,9 +38,11 @@ def lambda_handler(event,context):
     )
 
     responseFromOrderLine = json.load(response['Payload'])
-    message = 'Recieved Transaction Id: {} - Product: {} - Amount {}'.format(responseFromOrderLine.get('TransactionID'),
-                                                                             responseFromOrderLine.get('ProductName'),
-                                                                             responseFromOrderLine.get('Amount'))
-    return { 
-        'message' : message
-    }  
+   
+    return {
+            'phoneType'     : Name,
+            'quantity'      : Quantity,
+            'customerType'  : CustomerType,
+            'price'         : responseFromOrderLine.get('Amount'),
+            'transaction' : responseFromOrderLine.get('TransactionID')
+        }
