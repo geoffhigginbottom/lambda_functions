@@ -13,4 +13,3 @@ exports.handler = async (event,contecxt,callback) => {
         console.error(err);
     } 
 };
-
