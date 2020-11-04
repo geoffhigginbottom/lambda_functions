@@ -7,6 +7,7 @@ import urllib.request
 # Define the client to interact with AWS Lambda
 client = boto3.client('lambda')
 
+# Load Env Vars
 URL_STRING = os.environ['URL_STRING']
 CHILD_FUNCTION_ARN = os.environ['CHILD_FUNCTION_ARN']
 
@@ -34,8 +35,6 @@ def lambda_handler(event,context):
     print (inputParams)
     # Invoking Lambda directly
     response = client.invoke(
-        # FunctionName = 'RetailOrderLine', # This could be set as a Lambda Environment Variable
-        # FunctionName = 'arn:aws:lambda:eu-west-3:527477237977:function:Retail_Order_Line_60241d24',
         FunctionName = CHILD_FUNCTION_ARN,
         InvocationType = 'RequestResponse',
         Payload = json.dumps(inputParams)
@@ -43,18 +42,10 @@ def lambda_handler(event,context):
 
     responseFromOrderLine = json.load(response['Payload'])
    
-    return 
-    {
-        "isBase64Encoded": false,
-        "statusCode": 200,
-        "body": {
+    return {
             'phoneType'     : Name,
             'quantity'      : Quantity,
             'customerType'  : CustomerType,
             'price'         : responseFromOrderLine.get('Amount'),
             'transaction' : responseFromOrderLine.get('TransactionID')
-        },
-        "headers": {
-            "Content-Type": "application/json"
         }
-    }
