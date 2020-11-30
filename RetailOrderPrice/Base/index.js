@@ -1,19 +1,15 @@
 'use strict ';
 const https = require('https');
 
-// load environment variables
-let API_URL = process.env.API_URL
-let RETAIL_DISCOUNT_FUNCTION_NAME = process.env.RETAIL_DISCOUNT_FUNCTION_NAME
-let STAGE = process.env.STAGE
-
 // function to handle callback from HTTP call in Node JS
 async function getDiscount(options) {
     return new Promise((resolve, reject) => {
         let body = "";
         const req = https.get(options, function(res) {
+            console.log('statusCode: ' + res.statusCode);
             res.on('data', chunk => {
                 body += chunk;
-                console.log("body: " + body);
+                console.log("body: "+ body);
             });
             res.on('error', error => {
                 console.error(error);
@@ -22,46 +18,40 @@ async function getDiscount(options) {
             });
             res.on('end', () => {
                 resolve(JSON.parse(body).Discount);
-            });
-
+        });
+    
         });
     });
 }
 
-exports.handler = async(event) => {
+exports.handler = async function(event, context) {
     try {
-        let response = "";
-        // Get Customer Type from  queryStringParameters
-        let CustomerType = event.queryStringParameters.CustomerType;
         //  Setting Price hardcoded .. could fetch it from DataBase if required
-        var price = 525;
-        // give special customers a start discount
-        if (CustomerType=="Gold" || CustomerType=="Platinum") {
-            price = 499; 
-        }
-        
-        /// Set option for an other HTTPS call top a LAMBDA
+        var price = 499;
+
+        /// Set option for an other HTTPS call to a LAMBDA
+        var discount_Hostname = process.env.DISCOUNT_HOST;
+        var discount_Path = process.env.DISCOUNT_PATH;
         var discount = 0; // No discount unless call returns it
         const options = {
-            hostname: API_URL,
+            hostname:  discount_Hostname,
             port: 443,
-            path: '/' + STAGE + '/' +  RETAIL_DISCOUNT_FUNCTION_NAME, // path is built from env vars and has / added between each paramater
+            path: discount_Path,
             method: 'GET'
         };
-        
+
         //Fetch discount
         discount = await getDiscount(options);
         
         // calc new price and send it back    
-        var totalPrice = price - discount; // very complex Math taken place here
-        
-        response = {
+        var totalPrice = price - discount;
+        var response = {
             statusCode: 200,
-            body: JSON.stringify({"Price": totalPrice })
-            };
+            body: JSON.stringify({'Price':totalPrice})
+        };
         return response;
     }
     catch (err) {
-    console.error(err);
+        console.error(err);
     }
 };

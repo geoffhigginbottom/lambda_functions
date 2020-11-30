@@ -17,6 +17,8 @@ client = boto3.client('lambda')
 @signalfx_lambda.emits_metrics()
 @signalfx_lambda.is_traced()
 def lambda_handler(event,context):
+    print("event received :", event)
+
      # Setup tracer so we can create spans and retrieve the B3 Headers
     tracer = opentracing.tracer
     TraceHeaders = {} # Here we will store the B3 Headers needed for manual Propagation if required
@@ -37,11 +39,11 @@ def lambda_handler(event,context):
     # Call Node-JS lambda via Api Gateway to get the Price
     payload = {'CustomerType': CustomerType}
     r = requests.post(PRICE_URL, headers=TraceHeaders, params=payload)
-    print(r.url)
-    print(r.text)  
+    print( "Price Url: ",r.url)
+    print( "Price Payload: ",r.text)  
     #Get Price from response   
     Price =  json.loads(r.text).get('Price') # Get Value from the Price calculator       
-    print(Price)
+    print("Price: ",Price)
      #set tag with price   
     span.set_tag("UnitPrice", Price)
     
@@ -59,17 +61,25 @@ def lambda_handler(event,context):
         InvocationType = 'RequestResponse',
         Payload = json.dumps(inputParams)
     )
-
+   
     responseFromOrderLine = json.load(response['Payload'])
-
+    print (responseFromOrderLine)
+    newPrice = responseFromOrderLine.get('Amount')
+    print ("Price:" , newPrice)
+    transactionID =  responseFromOrderLine.get('TransactionID')
+    print ("transactions id:",  transactionID)
     #long line can be send to the span by using log
     span.log_kv({'order-line response': responseFromOrderLine})
     #optionally close the span
     span.finish()
-    return {
-            'phoneType'     : Name,
+    retval={'phoneType'     : Name,
             'quantity'      : Quantity,
             'customerType'  : CustomerType,
-            'price'         : responseFromOrderLine.get('Amount'),
-            'transaction'   : responseFromOrderLine.get('TransactionID')
+            'price'         : newPrice,
+            'transaction'   : transactionID
+            }
+    return {
+            'statusCode': 200,
+            'body': json.dumps(retval)
+            
         }

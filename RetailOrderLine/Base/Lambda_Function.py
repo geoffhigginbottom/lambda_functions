@@ -1,24 +1,27 @@
 import json
 import uuid
 import os
+APM_ENVIRONMENT = os.environ['SIGNALFX_APM_ENVIRONMENT']
+LAMBDA_FUNCTION = os.environ['LAMBDA_FUNCTION_NAME']
 
 def lambda_handler(event, context):
-    # Setup tracer so we can create span and set the B3 Headers
+    print ("event: " , event)
+    #1 Read the input parameters
+    productName = event['ProductName']
+    quantity    = event['Quantity']
+    unitPrice   = event['UnitPrice']
 
-        #1 Read the input parameters
-        productName = event['ProductName']
-        quantity    = event['Quantity']
-        unitPrice   = event['UnitPrice']
+    
+    #2 Generate the Order Transaction ID
+    transactionId   = str(uuid.uuid1())
+
+    #3 Implement Business Logic
+    amount      = quantity * unitPrice
+
+    #4 Format and return the result
+    return {
+        'TransactionID' :   transactionId,
+        'ProductName'   :   productName,
+        'Amount'        :   amount
         
-        #2 Generate the Order Transaction ID
-        transactionId   = str(uuid.uuid1())
-
-        #3 Implement Business Logic
-        amount      = quantity * unitPrice
-     
-        #4 Format and return the result
-        return {
-            'TransactionID' :   transactionId,
-            'ProductName'   :   productName,
-            'Amount'        :   amount
         }

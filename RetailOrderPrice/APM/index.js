@@ -59,12 +59,7 @@ exports.handler = signalFxLambda.asyncWrapper(async(event, context) => {
         }
         //  Setting Price hardcoded .. could fetch it from DataBase if required
         var price = 499;
-
-        // now grab headers for content propgation so we can call a different lambda function to get a discount
-        const headers = {}; // set up an array of headers so we can inject  the B3-headers)
-        //tracer.inject(headers); // Inject the B3 header in the headers Array
-        //console.log("headers:");
-        //console.log(headers);
+        
         /// Set option for an other HTTPS call to a LAMBDA
         var discount_Hostname = process.env.DISCOUNT_HOST;
         var discount_Path = process.env.DISCOUNT_PATH;
@@ -73,8 +68,7 @@ exports.handler = signalFxLambda.asyncWrapper(async(event, context) => {
             hostname:  discount_Hostname,
             port: 443,
             path: discount_Path,
-            method: 'GET',
-            headers: headers
+            method: 'GET'
         };
 
         //Fetch discount
@@ -82,7 +76,7 @@ exports.handler = signalFxLambda.asyncWrapper(async(event, context) => {
         
         // calc new price and send it back    
         var totalPrice = price - discount;
-        response = {
+        var response = {
             statusCode: 200,
             body: JSON.stringify({'Price':totalPrice})
         };
